@@ -24,8 +24,9 @@ pip install -e ".[pusht]"
 
 from pathlib import Path
 
-import gym_pusht  # noqa: F401
+
 import gymnasium as gym
+import gym_xarm  # noqa: F401
 import imageio
 import numpy
 import torch
@@ -33,16 +34,16 @@ import torch
 from lerobot.policies.diffusion.modeling_diffusion import DiffusionPolicy
 
 # Create a directory to store the video of the evaluation
-output_directory = Path("outputs/eval/example_pusht_diffusion")
+output_directory = Path("outputs/eval/xarm_diffusion")
 output_directory.mkdir(parents=True, exist_ok=True)
 
 # Select your device
 device = "cuda"
 
 # Provide the [hugging face repo id](https://huggingface.co/lerobot/diffusion_pusht):
-pretrained_policy_path = "lerobot/diffusion_pusht"
+# pretrained_policy_path = "lerobot/diffusion_pusht"
 # OR a path to a local outputs/train folder.
-# pretrained_policy_path = Path("outputs/train/example_pusht_diffusion")
+pretrained_policy_path = Path("outputs/train/xarm_diffusion")
 
 policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
 
@@ -50,9 +51,9 @@ policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
 # an image of the scene and state/position of the agent. The environment
 # also automatically stops running after 300 interactions/steps.
 env = gym.make(
-    "gym_pusht/PushT-v0",
+    "gym_xarm/XarmLift-v0",
     obs_type="pixels_agent_pos",
-    max_episode_steps=300,
+    max_episode_steps=1000,
 )
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
@@ -124,6 +125,14 @@ while not done:
     done = terminated | truncated | done
     step += 1
 
+# After the while loop
+print(f"Episode finished after {step} steps")
+print(f"Final reward: {sum(rewards)}")
+print(f"Average reward: {sum(rewards)/len(rewards)}")
+
+# Create a more detailed output video name
+video_path = output_directory / f"rollout_steps{step}_reward{sum(rewards):.3f}.mp4"
+
 if terminated:
     print("Success!")
 else:
@@ -133,7 +142,13 @@ else:
 fps = env.metadata["render_fps"]
 
 # Encode all frames into a mp4 video.
-video_path = output_directory / "rollout.mp4"
+video_path = output_directory / "rollout5000.mp4"
 imageio.mimsave(str(video_path), numpy.stack(frames), fps=fps)
 
 print(f"Video of the evaluation is available in '{video_path}'.")
+
+# At the end of your script, before exit
+try:
+    env.close()
+except Exception as e:
+    print(f"Warning: Error during environment cleanup: {e}")
