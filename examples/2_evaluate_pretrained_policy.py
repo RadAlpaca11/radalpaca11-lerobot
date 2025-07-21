@@ -26,7 +26,7 @@ from pathlib import Path
 
 
 import gymnasium as gym
-import gym_xarm  # noqa: F401
+import gym_xarm
 import imageio
 import numpy
 import torch
@@ -38,7 +38,17 @@ output_directory = Path("outputs/eval/xarm_diffusion")
 output_directory.mkdir(parents=True, exist_ok=True)
 
 # Select your device
-device = "cuda"
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("Using GPU for evaluation.")
+
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("Using Apple Silicon GPU for evaluation.")
+    
+else:
+    device = torch.device("cpu")
+    print("Using CPU for evaluation.")
 
 # Provide the [hugging face repo id](https://huggingface.co/lerobot/diffusion_pusht):
 # pretrained_policy_path = "lerobot/diffusion_pusht"
