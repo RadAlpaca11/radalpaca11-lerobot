@@ -358,6 +358,9 @@ class PI0Policy(PreTrainedPolicy):
         # Preprocess image features present in the batch
         for key in present_img_keys:
             img = batch[key]
+            if img.ndim != 4: # the chunk size variable is being included, and needs to be removed
+                list = [[img[0], img[2], img[3], img[4]]]
+                img = torch.tensor(list) # not currently working
 
             if self.config.resize_imgs_with_padding is not None:
                 img = resize_with_pad(img, *self.config.resize_imgs_with_padding, pad_value=0)
