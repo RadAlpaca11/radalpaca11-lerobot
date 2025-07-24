@@ -358,9 +358,12 @@ class PI0Policy(PreTrainedPolicy):
         # Preprocess image features present in the batch
         for key in present_img_keys:
             img = batch[key]
+            # print(type(img))
             if img.ndim != 4: # the chunk size variable is being included, and needs to be removed
-                list = [[img[0], img[2], img[3], img[4]]]
-                img = torch.tensor(list) # not currently working
+                img = img[1]
+                print(img.shape)
+            #     list = torch.tensor([[img[0], img[2], img[3], img[4]]])
+            #     # img = torch.tensor(list) # not currently working
 
             if self.config.resize_imgs_with_padding is not None:
                 img = resize_with_pad(img, *self.config.resize_imgs_with_padding, pad_value=0)
@@ -533,6 +536,7 @@ class PI0FlowMatching(nn.Module):
             # Normalize image embeddings
             img_emb_dim = img_emb.shape[-1]
             img_emb = img_emb * torch.tensor(img_emb_dim**0.5, dtype=img_emb.dtype, device=img_emb.device)
+            print(img_emb.shape)
 
             bsize, num_img_embs = img_emb.shape[:2]
             img_mask = img_mask[:, None].expand(bsize, num_img_embs)
@@ -572,7 +576,9 @@ class PI0FlowMatching(nn.Module):
         # Embed state
         state_emb = self.state_proj(state)
         state_emb = state_emb.to(dtype=torch.bfloat16)
-        embs.append(state_emb[:, None, :])
+        #embs.append(state_emb[:, None, :])
+        embs.append(state_emb)
+        #torch.squeeze(embs[0], dim=1)
         bsize = state_emb.shape[0]
         dtype = state_emb.dtype
         device = state_emb.device
@@ -608,7 +614,7 @@ class PI0FlowMatching(nn.Module):
 
         # Set attention masks so that image, language and state inputs do not attend to action tokens
         att_masks += [1] + ([0] * (self.config.n_action_steps - 1))
-
+        
         embs = torch.cat(embs, dim=1)
         pad_masks = torch.cat(pad_masks, dim=1)
         att_masks = torch.tensor(att_masks, dtype=embs.dtype, device=embs.device)

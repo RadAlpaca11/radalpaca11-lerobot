@@ -105,7 +105,7 @@ def main():
     dataloader = torch.utils.data.DataLoader(
         dataset,
         num_workers=4,
-        batch_size=64,
+        batch_size=50,
         shuffle=True,
         pin_memory=device.type != "cpu",
         drop_last=True,

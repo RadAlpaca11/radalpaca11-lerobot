@@ -50,6 +50,12 @@ def apply_rope(x, positions, max_wavelength=10_000):
 
     x1, x2 = x.split(d_half, dim=-1)
     res = torch.empty_like(x)
+    print(res.shape)
+    print(x1.shape)
+    print(x2.shape)
+    print(cos.shape)
+    print(sin.shape)
+
     res[..., :d_half] = x1 * cos - x2 * sin
     res[..., d_half:] = x2 * cos + x1 * sin
 
