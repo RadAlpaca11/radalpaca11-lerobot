@@ -29,18 +29,29 @@ import gymnasium as gym
 import imageio
 import numpy
 import torch
+import gym_xarm
 
 from lerobot.policies.diffusion.modeling_diffusion import DiffusionPolicy
 
 # Create a directory to store the video of the evaluation
-output_directory = Path("outputs/eval/example_pusht_diffusion")
+output_directory = Path("outputs/eval/xarm_diffusion_pics")
 output_directory.mkdir(parents=True, exist_ok=True)
 
 # Select your device
-device = "cuda"
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("Using GPU for evaluation.")
+
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("Using Apple Silicon GPU for evaluation.")
+    
+else:
+    device = torch.device("cpu")
+    print("Using CPU for evaluation.")
 
 # Provide the [hugging face repo id](https://huggingface.co/lerobot/diffusion_pusht):
-pretrained_policy_path = "lerobot/diffusion_pusht"
+pretrained_policy_path = "outputs/train/xarm_diffusion_pics"
 # OR a path to a local outputs/train folder.
 # pretrained_policy_path = Path("outputs/train/example_pusht_diffusion")
 
@@ -50,9 +61,9 @@ policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
 # an image of the scene and state/position of the agent. The environment
 # also automatically stops running after 300 interactions/steps.
 env = gym.make(
-    "gym_pusht/PushT-v0",
+    "gym_xarm/XarmLift-v0",
     obs_type="pixels_agent_pos",
-    max_episode_steps=300,
+    max_episode_steps=1000,
 )
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
