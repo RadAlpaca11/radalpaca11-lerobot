@@ -122,25 +122,30 @@ def train(cfg: TrainPipelineConfig):
     # Check device is available
     device = get_safe_torch_device(cfg.policy.device, log=True)
     torch.backends.cudnn.benchmark = True
-    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction=True
 
     logging.info("Creating dataset")
     dataset = make_dataset(cfg)
+    #dataset = dataset[:100]  # Use only the first 100 samples
 
     # Create environment used for evaluating checkpoints during training on simulation data.
     # On real-world data, no need to create an environment as evaluations are done outside train.py,
     # using the eval.py instead, with gym_dora environment and dora-rs.
     eval_env = None
+    cfg.steps = 1000
+    #cfg.policy.resize_imgs_with_padding = [64, 64]  # Reduce image size
     if cfg.eval_freq > 0 and cfg.env is not None:
         logging.info("Creating env")
         eval_env = make_env(cfg.env, n_envs=cfg.eval.batch_size, use_async_envs=cfg.eval.use_async_envs)
 
     logging.info("Creating policy")
+    
     policy = make_policy(
         cfg=cfg.policy,
         ds_meta=dataset.meta,
     )
-
+    
     logging.info("Creating optimizer and scheduler")
     optimizer, lr_scheduler = make_optimizer_and_scheduler(cfg, policy)
     grad_scaler = GradScaler(device.type, enabled=cfg.policy.use_amp)
