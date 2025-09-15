@@ -31,20 +31,21 @@ import numpy
 import torch
 
 from lerobot.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from lerobot.policies.pi0.modeling_pi0 import PI0Policy
 
 # Create a directory to store the video of the evaluation
-output_directory = Path("outputs/eval/example_pusht_diffusion")
+output_directory = Path("outputs/eval/example_pusht_pi0")
 output_directory.mkdir(parents=True, exist_ok=True)
 
 # Select your device
 device = "cuda"
 
 # Provide the [hugging face repo id](https://huggingface.co/lerobot/diffusion_pusht):
-pretrained_policy_path = "lerobot/diffusion_pusht"
+pretrained_policy_path = "lerobot/pi0"
 # OR a path to a local outputs/train folder.
 # pretrained_policy_path = Path("outputs/train/example_pusht_diffusion")
 
-policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
+policy = PI0Policy.from_pretrained(pretrained_policy_path)
 
 # Initialize evaluation environment to render two observation types:
 # an image of the scene and state/position of the agent. The environment
@@ -57,6 +58,7 @@ env = gym.make(
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
 # produced by the environment
+
 print(policy.config.input_features)
 print(env.observation_space)
 

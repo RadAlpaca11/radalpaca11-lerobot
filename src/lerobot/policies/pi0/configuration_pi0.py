@@ -138,7 +138,7 @@ class PI0Config(PreTrainedConfig):
 
     @property
     def observation_delta_indices(self) -> None:
-        return None
+        return list(range(self.n_obs_steps))
 
     @property
     def action_delta_indices(self) -> list:

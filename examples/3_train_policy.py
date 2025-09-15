@@ -27,11 +27,13 @@ from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetad
 from lerobot.datasets.utils import dataset_to_policy_features
 from lerobot.policies.diffusion.configuration_diffusion import DiffusionConfig
 from lerobot.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from lerobot.policies.pi0.configuration_pi0 import PI0Config
+from lerobot.policies.pi0.modeling_pi0 import PI0Policy
 
 
 def main():
     # Create a directory to store the training checkpoint.
-    output_directory = Path("outputs/train/example_pusht_diffusion")
+    output_directory = Path("outputs/train/example_pusht_pi0")
     output_directory.mkdir(parents=True, exist_ok=True)
 
     # # Select your device
@@ -46,17 +48,19 @@ def main():
     # creating the policy:
     #   - input/output shapes: to properly size the policy
     #   - dataset stats: for normalization and denormalization of input/outputs
-    dataset_metadata = LeRobotDatasetMetadata("lerobot/pusht")
+    dataset_metadata = LeRobotDatasetMetadata("lerobot/pusht_image")
     features = dataset_to_policy_features(dataset_metadata.features)
     output_features = {key: ft for key, ft in features.items() if ft.type is FeatureType.ACTION}
     input_features = {key: ft for key, ft in features.items() if key not in output_features}
 
     # Policies are initialized with a configuration class, in this case `DiffusionConfig`. For this example,
     # we'll just use the defaults and so no arguments other than input/output features need to be passed.
-    cfg = DiffusionConfig(input_features=input_features, output_features=output_features)
+    # cfg = DiffusionConfig(input_features=input_features, output_features=output_features)
+    cfg = PI0Config(input_features=input_features, output_features=output_features)
 
     # We can now instantiate our policy with this config and the dataset stats.
-    policy = DiffusionPolicy(cfg, dataset_stats=dataset_metadata.stats)
+    # policy = DiffusionPolicy(cfg, dataset_stats=dataset_metadata.stats)
+    policy = PI0Policy(cfg, dataset_stats=dataset_metadata.stats)
     policy.train()
     policy.to(device)
 

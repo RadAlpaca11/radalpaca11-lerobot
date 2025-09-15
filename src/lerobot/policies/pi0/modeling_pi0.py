@@ -131,13 +131,18 @@ def make_att_2d_masks(pad_masks, att_masks):
 def resize_with_pad(img, width, height, pad_value=-1):
     # assume no-op when width height fits already
     if img.ndim != 4:
-        raise ValueError(f"(b,c,h,w) expected, but {img.shape}")
+        img = img.reshape(64*2, 3, 96, 96)
+        #raise ValueError(f"(b,c,h,w) expected, but {img.shape}")
 
     cur_height, cur_width = img.shape[2:]
 
     ratio = max(cur_width / width, cur_height / height)
+    print(ratio)
     resized_height = int(cur_height / ratio)
+    print(resized_height)
     resized_width = int(cur_width / ratio)
+    print(resized_width)
+    print(img.shape)
     resized_img = F.interpolate(
         img, size=(resized_height, resized_width), mode="bilinear", align_corners=False
     )
