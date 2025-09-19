@@ -131,7 +131,7 @@ def make_att_2d_masks(pad_masks, att_masks):
 def resize_with_pad(img, width, height, pad_value=-1):
     # assume no-op when width height fits already
     if img.ndim != 4:
-        img = img.reshape(64*2, 3, 96, 96)
+        img = img.reshape(64, 3*2, 96, 96)
         #raise ValueError(f"(b,c,h,w) expected, but {img.shape}")
 
     cur_height, cur_width = img.shape[2:]
@@ -142,9 +142,12 @@ def resize_with_pad(img, width, height, pad_value=-1):
     print(resized_height)
     resized_width = int(cur_width / ratio)
     print(resized_width)
+    print(type(img))
+    new_size = (resized_height, resized_width)
+    print(type(new_size))
     print(img.shape)
     resized_img = F.interpolate(
-        img, size=(resized_height, resized_width), mode="bilinear", align_corners=False
+        input=img, size=(resized_height, resized_width), mode="bilinear"
     )
 
     pad_height = max(0, int(height - resized_height))
@@ -364,8 +367,9 @@ class PI0Policy(PreTrainedPolicy):
         for key in present_img_keys:
             img = batch[key]
 
-            if self.config.resize_imgs_with_padding is not None:
-                img = resize_with_pad(img, *self.config.resize_imgs_with_padding, pad_value=0)
+
+            # if self.config.resize_imgs_with_padding is not None:
+            #     img = resize_with_pad(img, *self.config.resize_imgs_with_padding, pad_value=0)
 
             # Normalize from range [0,1] to [-1,1] as expected by siglip
             img = img * 2.0 - 1.0
