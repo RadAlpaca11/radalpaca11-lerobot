@@ -28,6 +28,8 @@ from transformers.models.auto import CONFIG_MAPPING
 
 from lerobot.policies.pi0.flex_attention import flex_attention_forward
 
+import numpy as np
+
 
 def apply_rope(x, positions, max_wavelength=10_000):
     """
@@ -36,11 +38,11 @@ def apply_rope(x, positions, max_wavelength=10_000):
     d_half = x.shape[-1] // 2
     device = x.device
     dtype = x.dtype
-    x = x.to(torch.float32)
+    x = x.to(torch.float16)
 
-    freq_exponents = (2.0 / x.shape[-1]) * torch.arange(d_half, dtype=torch.float32, device=device)
+    freq_exponents = (2.0 / x.shape[-1]) * torch.arange(d_half, dtype=torch.float16, device=device)
     timescale = max_wavelength**freq_exponents
-    radians = positions[..., None].to(torch.float32) / timescale[None, None, :].to(torch.float32)
+    radians = positions[..., None].to(torch.float16) / timescale[None, None, :].to(torch.float16)
 
     radians = radians[..., None, :]
 
@@ -93,7 +95,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                     "num_hidden_layers": 18,
                     "num_image_tokens": 256,
                     "num_key_value_heads": 1,
-                    "torch_dtype": "float32",
+                    "torch_dtype": "float16",
                     "vocab_size": 257152,
                 },
                 vision_config={
@@ -106,7 +108,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                     "patch_size": 14,
                     "projection_dim": 2048,
                     "projector_hidden_act": "gelu_fast",
-                    "torch_dtype": "float32",
+                    "torch_dtype": "float16",
                     "vision_use_head": False,
                 },
             )
@@ -139,7 +141,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                 pad_token_id=0,
                 rms_norm_eps=1e-06,
                 rope_theta=10000.0,
-                torch_dtype="float32",
+                torch_dtype="float16",
                 transformers_version="4.48.1",
                 use_cache=True,
                 vocab_size=257152,
@@ -391,10 +393,10 @@ class PaliGemmaWithExpertModel(PreTrainedModel):
             batch_size, sequence_length, num_key_value_heads * num_key_value_groups, head_dim
         )
 
-        # Attention here is upcasted to float32 to match the original eager implementation.
+        # Attention here is upcasted to float16 to match the original eager implementation.
 
-        query_states = query_states.to(dtype=torch.float32)
-        key_states = key_states.to(dtype=torch.float32)
+        query_states = query_states.to(dtype=torch.float16)
+        key_states = key_states.to(dtype=torch.float16)
 
         query_states = query_states.transpose(1, 2)
         key_states = key_states.transpose(1, 2)
@@ -402,6 +404,8 @@ class PaliGemmaWithExpertModel(PreTrainedModel):
         att_weights = torch.matmul(query_states, key_states.transpose(2, 3))
         att_weights *= head_dim**-0.5
         big_neg = -2.3819763e38  # See gemma/modules.py
+        att_weights = att_weights.to(dtype=torch.float16)
+        big_neg = np.float16(big_neg)
 
         masked_att_weights = torch.where(attention_mask[:, None, :, :], att_weights, big_neg)
 
