@@ -39,19 +39,19 @@ def test_to_tensor_numpy_arrays():
 def test_to_tensor_numpy_scalars():
     """Test to_tensor with numpy scalars (0-dimensional arrays)."""
     # numpy float32 scalar
-    scalar = np.float32(3.14)
+    scalar = np.float16(3.14)
     result = to_tensor(scalar)
     assert isinstance(result, torch.Tensor)
     assert result.ndim == 0  # Should be 0-dimensional tensor
-    assert result.dtype == torch.float32
+    assert result.dtype == torch.bfloat16
     assert result.item() == pytest.approx(3.14)
 
     # numpy int32 scalar
-    int_scalar = np.int32(42)
+    int_scalar = np.int16(42)
     result = to_tensor(int_scalar)
     assert isinstance(result, torch.Tensor)
     assert result.ndim == 0
-    assert result.dtype == torch.float32
+    assert result.dtype == torch.bfloat16
     assert result.item() == pytest.approx(42.0)
 
 
@@ -60,13 +60,13 @@ def test_to_tensor_python_scalars():
     # Python int
     result = to_tensor(42)
     assert isinstance(result, torch.Tensor)
-    assert result.dtype == torch.float32
+    assert result.dtype == torch.bfloat16
     assert result.item() == pytest.approx(42.0)
 
     # Python float
     result = to_tensor(3.14)
     assert isinstance(result, torch.Tensor)
-    assert result.dtype == torch.float32
+    assert result.dtype == torch.bfloat16
     assert result.item() == pytest.approx(3.14)
 
 

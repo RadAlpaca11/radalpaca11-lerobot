@@ -598,7 +598,7 @@ def test_action_dtype_preservation():
     processor = AddBatchDimensionProcessorStep()
 
     # Different dtypes
-    dtypes = [torch.float32, torch.float64, torch.int32, torch.int64]
+    dtypes = [torch.bfloat16, torch.float64, torch.int32, torch.int64]
 
     for dtype in dtypes:
         action = torch.randn(4).to(dtype)

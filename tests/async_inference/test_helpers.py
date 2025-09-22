@@ -188,7 +188,7 @@ def test_observations_similar_true():
     # Create mock lerobot features for the similarity check
     lerobot_features = {
         "observation.state": {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": [4],
             "names": ["shoulder", "elbow", "wrist", "gripper"],
         }
@@ -223,7 +223,7 @@ def _create_mock_lerobot_features():
     """Create mock lerobot features mapping similar to what hw_to_dataset_features returns."""
     return {
         "observation.state": {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": [4],
             "names": ["shoulder", "elbow", "wrist", "gripper"],
         },
@@ -262,7 +262,7 @@ def test_prepare_image():
     processed = prepare_image(image_int8)
 
     # Check dtype conversion
-    assert processed.dtype == torch.float32
+    assert processed.dtype == torch.bfloat16
 
     # Check normalization range
     assert processed.min() >= 0.0
@@ -360,8 +360,8 @@ def test_raw_observation_to_observation_basic():
     assert phone_img.device.type == device
 
     # Check image dtype and range (should be float32 in [0, 1])
-    assert laptop_img.dtype == torch.float32
-    assert phone_img.dtype == torch.float32
+    assert laptop_img.dtype == torch.bfloat16
+    assert phone_img.dtype == torch.bfloat16
     assert laptop_img.min() >= 0.0 and laptop_img.max() <= 1.0
     assert phone_img.min() >= 0.0 and phone_img.max() <= 1.0
 
@@ -430,7 +430,7 @@ def test_image_processing_pipeline_preserves_content():
     robot_obs = {"shoulder": 1.0, "elbow": 1.0, "wrist": 1.0, "gripper": 1.0, "laptop": original_img}
     lerobot_features = {
         "observation.state": {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": [4],
             "names": ["shoulder", "elbow", "wrist", "gripper"],
         },

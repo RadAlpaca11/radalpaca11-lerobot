@@ -75,7 +75,7 @@ class Stretch3Robot(Robot):
     @property
     def observation_features(self) -> dict:
         return {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": (len(STRETCH_MOTORS),),
             "names": {"motors": list(STRETCH_MOTORS)},
         }

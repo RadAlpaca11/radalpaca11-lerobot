@@ -55,7 +55,7 @@ class DeviceProcessorStep(ProcessorStep):
         "float64": torch.float64,
         "bfloat16": torch.bfloat16,
         "half": torch.float16,
-        "float": torch.float32,
+        "float": torch.bfloat16,
         "double": torch.float64,
     }
 
@@ -107,7 +107,7 @@ class DeviceProcessorStep(ProcessorStep):
 
         # MPS workaround: Convert float64 to float32 since MPS doesn't support float64
         if target_device.type == "mps" and tensor.dtype == torch.float64:
-            tensor = tensor.to(dtype=torch.float32)
+            tensor = tensor.to(dtype=torch.bfloat16)
 
         # Only move if necessary
         if tensor.device != target_device:

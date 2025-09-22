@@ -164,7 +164,7 @@ def predict_action(
         for name in observation:
             observation[name] = torch.from_numpy(observation[name])
             if "image" in name:
-                observation[name] = observation[name].type(torch.float32) / 255
+                observation[name] = observation[name].type(torch.bfloat16) / 255
                 observation[name] = observation[name].permute(2, 0, 1).contiguous()
             observation[name] = observation[name].unsqueeze(0)
             observation[name] = observation[name].to(device)

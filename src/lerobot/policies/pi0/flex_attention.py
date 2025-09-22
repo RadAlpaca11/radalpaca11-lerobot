@@ -66,9 +66,9 @@ def flex_attention_forward(
     key_states = key_states.transpose(1, 2)
     value_states = value_states.transpose(1, 2)
 
-    query_states = query_states.to(torch.float32)
-    key_states = key_states.to(torch.float32)
-    value_states = value_states.to(torch.float32)
+    query_states = query_states.to(torch.bfloat16)
+    key_states = key_states.to(torch.bfloat16)
+    value_states = value_states.to(torch.bfloat16)
 
     causal_mask = attention_mask
     if causal_mask is not None:

@@ -80,11 +80,11 @@ This dataset was created using [LeRobot](https://github.com/huggingface/lerobot)
 """
 
 DEFAULT_FEATURES = {
-    "timestamp": {"dtype": "float32", "shape": (1,), "names": None},
-    "frame_index": {"dtype": "int64", "shape": (1,), "names": None},
-    "episode_index": {"dtype": "int64", "shape": (1,), "names": None},
-    "index": {"dtype": "int64", "shape": (1,), "names": None},
-    "task_index": {"dtype": "int64", "shape": (1,), "names": None},
+    "timestamp": {"dtype": "float16", "shape": (1,), "names": None},
+    "frame_index": {"dtype": "int16", "shape": (1,), "names": None},
+    "episode_index": {"dtype": "int16", "shape": (1,), "names": None},
+    "index": {"dtype": "int16", "shape": (1,), "names": None},
+    "task_index": {"dtype": "int16", "shape": (1,), "names": None},
 }
 
 T = TypeVar("T")
@@ -389,7 +389,7 @@ def backward_compatible_episodes_stats(
 
 
 def load_image_as_numpy(
-    fpath: str | Path, dtype: np.dtype = np.float32, channel_first: bool = True
+    fpath: str | Path, dtype: np.dtype = np.float16, channel_first: bool = True
 ) -> np.ndarray:
     """Load an image from a file into a numpy array.
 
@@ -647,14 +647,14 @@ def hw_to_dataset_features(
 
     if joint_fts and prefix == "action":
         features[prefix] = {
-            "dtype": "float32",
+            "dtype": "float16",
             "shape": (len(joint_fts),),
             "names": list(joint_fts),
         }
 
     if joint_fts and prefix == "observation":
         features[f"{prefix}.state"] = {
-            "dtype": "float32",
+            "dtype": "float16",
             "shape": (len(joint_fts),),
             "names": list(joint_fts),
         }
@@ -691,8 +691,8 @@ def build_dataset_frame(
     for key, ft in ds_features.items():
         if key in DEFAULT_FEATURES or not key.startswith(prefix):
             continue
-        elif ft["dtype"] == "float32" and len(ft["shape"]) == 1:
-            frame[key] = np.array([values[name] for name in ft["names"]], dtype=np.float32)
+        elif ft["dtype"] == "float16" and len(ft["shape"]) == 1:
+            frame[key] = np.array([values[name] for name in ft["names"]], dtype=np.float16)
         elif ft["dtype"] in ["image", "video"]:
             frame[key] = values[key.removeprefix(f"{prefix}.images.")]
 

@@ -41,7 +41,7 @@ def main():
     # To device
     for k in batch:
         if isinstance(batch[k], torch.Tensor):
-            batch[k] = batch[k].to(device=device, dtype=torch.float32)
+            batch[k] = batch[k].to(device=device, dtype=torch.bfloat16)
 
     cfg = PreTrainedConfig.from_pretrained(ckpt_torch_dir)
     cfg.pretrained_path = ckpt_torch_dir

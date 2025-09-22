@@ -60,12 +60,12 @@ def dummy_dataset_metadata(lerobot_dataset_metadata_factory, info_factory, tmp_p
     }
     motor_features = {
         "action": {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": (6,),
             "names": ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"],
         },
         "observation.state": {
-            "dtype": "float32",
+            "dtype": "bfloat16",
             "shape": (6,),
             "names": ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"],
         },

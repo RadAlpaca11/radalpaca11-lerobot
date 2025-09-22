@@ -89,7 +89,7 @@ def update_policy(
     start_time = time.perf_counter()
     device = get_device_from_parameters(policy)
     policy.train()
-    with torch.autocast(device_type=device.type, dtype=torch.float16) if use_amp else nullcontext():
+    with torch.autocast(device_type=device.type, dtype=torch.bfloat16) if use_amp else nullcontext():
         loss, output_dict = policy.forward(batch)
         # TODO(rcadene): policy.unnormalize_outputs(out_dict)
     grad_scaler.scale(loss).backward()
@@ -109,6 +109,8 @@ def update_policy(
         grad_scaler.step(optimizer)
     # Updates the scale for next iteration.
     grad_scaler.update()
+
+    torch.cuda.empty_cache()
 
     optimizer.zero_grad()
 
@@ -253,6 +255,7 @@ def train(cfg: TrainPipelineConfig):
         batch = next(dl_iter)
         batch = preprocessor(batch)
         train_tracker.dataloading_s = time.perf_counter() - start_time
+        torch.cuda.empty_cache()
 
         train_tracker, output_dict = update_policy(
             train_tracker,

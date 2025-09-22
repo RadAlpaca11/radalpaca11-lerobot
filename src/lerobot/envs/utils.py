@@ -60,7 +60,7 @@ def preprocess_observation(observations: dict[str, np.ndarray]) -> dict[str, Ten
 
             # convert to channel first of type float32 in range [0,1]
             img = einops.rearrange(img, "b h w c -> b c h w").contiguous()
-            img = img.type(torch.float32)
+            img = img.type(torch.bfloat16)
             img /= 255
 
             return_observations[imgkey] = img

@@ -439,7 +439,7 @@ def _compile_episode_data(
             "timestamp": torch.arange(0, num_frames - 1, 1) / fps,
             "next.done": rollout_data["done"][ep_ix, : num_frames - 1],
             "next.success": rollout_data["success"][ep_ix, : num_frames - 1],
-            "next.reward": rollout_data["reward"][ep_ix, : num_frames - 1].type(torch.float32),
+            "next.reward": rollout_data["reward"][ep_ix, : num_frames - 1].type(torch.bfloat16),
         }
 
         # For the last observation frame, all other keys will just be copy padded.

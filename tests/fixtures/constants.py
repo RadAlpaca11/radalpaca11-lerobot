@@ -18,12 +18,12 @@ DUMMY_REPO_ID = "dummy/repo"
 DUMMY_ROBOT_TYPE = "dummy_robot"
 DUMMY_MOTOR_FEATURES = {
     "action": {
-        "dtype": "float32",
+        "dtype": "bfloat16",
         "shape": (6,),
         "names": ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"],
     },
     "state": {
-        "dtype": "float32",
+        "dtype": "bfloat16",
         "shape": (6,),
         "names": ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"],
     },

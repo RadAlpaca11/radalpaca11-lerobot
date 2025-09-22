@@ -166,7 +166,7 @@ class MotorCurrentProcessorStep(ObservationProcessorStep):
         present_current_dict = self.robot.bus.sync_read("Present_Current")  # type: ignore[attr-defined]
         motor_currents = torch.tensor(
             [present_current_dict[name] for name in self.robot.bus.motors],  # type: ignore[attr-defined]
-            dtype=torch.float32,
+            dtype=torch.bfloat16,
         ).unsqueeze(0)
 
         current_state = observation.get(OBS_STATE)

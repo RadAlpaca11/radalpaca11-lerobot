@@ -87,7 +87,7 @@ class VanillaObservationProcessorStep(ObservationProcessorStep):
         img_tensor = einops.rearrange(img_tensor, "b h w c -> b c h w").contiguous()
 
         # Convert to float32 and normalize to [0, 1]
-        img_tensor = img_tensor.type(torch.float32) / 255.0
+        img_tensor = img_tensor.type(torch.bfloat16) / 255.0
 
         return img_tensor
 

@@ -129,7 +129,7 @@ class _NormalizationMixin:
         # Convert stats to tensors and move to the target device once during initialization.
         self.stats = self.stats or {}
         if self.dtype is None:
-            self.dtype = torch.float32
+            self.dtype = torch.bfloat16
         self._tensor_stats = to_tensor(self.stats, device=self.device, dtype=self.dtype)
 
     def to(
@@ -206,7 +206,7 @@ class _NormalizationMixin:
             key, stat_name = flat_key.rsplit(".", 1)
             # Load to the processor's configured device.
             self._tensor_stats.setdefault(key, {})[stat_name] = tensor.to(
-                dtype=torch.float32, device=self.device
+                dtype=torch.bfloat16, device=self.device
             )
 
         # Reconstruct the original stats dict from tensor stats for compatibility with to() method

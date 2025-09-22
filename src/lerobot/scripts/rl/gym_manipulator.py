@@ -105,7 +105,7 @@ def reset_follower_position(robot_arm: Robot, target_position: np.ndarray) -> No
     """Reset robot arm to target position using smooth trajectory."""
     current_position_dict = robot_arm.bus.sync_read("Present_Position")
     current_position = np.array(
-        [current_position_dict[name] for name in current_position_dict], dtype=np.float32
+        [current_position_dict[name] for name in current_position_dict], dtype=np.float16
     )
     trajectory = torch.from_numpy(
         np.linspace(current_position, target_position, 50)
@@ -194,7 +194,7 @@ class RobotEnv(gym.Env):
                 low=0,
                 high=10,
                 shape=agent_pos.shape,
-                dtype=np.float32,
+                dtype=np.float16,
             )
 
         self.observation_space = gym.spaces.Dict(observation_spaces)
@@ -214,7 +214,7 @@ class RobotEnv(gym.Env):
             low=bounds["min"],
             high=bounds["max"],
             shape=(action_dim,),
-            dtype=np.float32,
+            dtype=np.float16,
         )
 
     def reset(
@@ -601,12 +601,12 @@ def control_loop(
         action_features = teleop_device.action_features
         features = {
             "action": action_features,
-            "next.reward": {"dtype": "float32", "shape": (1,), "names": None},
+            "next.reward": {"dtype": "float16", "shape": (1,), "names": None},
             "next.done": {"dtype": "bool", "shape": (1,), "names": None},
         }
         if use_gripper:
             features["complementary_info.discrete_penalty"] = {
-                "dtype": "float32",
+                "dtype": "float16",
                 "shape": (1,),
                 "names": ["discrete_penalty"],
             }
@@ -614,7 +614,7 @@ def control_loop(
         for key, value in transition[TransitionKey.OBSERVATION].items():
             if key == "observation.state":
                 features[key] = {
-                    "dtype": "float32",
+                    "dtype": "float16",
                     "shape": value.squeeze(0).shape,
                     "names": None,
                 }
@@ -644,7 +644,7 @@ def control_loop(
         step_start_time = time.perf_counter()
 
         # Create a neutral action (no movement)
-        neutral_action = torch.tensor([0.0, 0.0, 0.0], dtype=torch.float32)
+        neutral_action = torch.tensor([0.0, 0.0, 0.0], dtype=torch.bfloat16)
         if use_gripper:
             neutral_action = torch.cat([neutral_action, torch.tensor([1.0])])  # Gripper stay
 
@@ -672,12 +672,12 @@ def control_loop(
             frame = {
                 **observations,
                 "action": action_to_record.cpu(),
-                "next.reward": np.array([transition[TransitionKey.REWARD]], dtype=np.float32),
+                "next.reward": np.array([transition[TransitionKey.REWARD]], dtype=np.float16),
                 "next.done": np.array([terminated or truncated], dtype=bool),
             }
             if use_gripper:
                 discrete_penalty = transition[TransitionKey.COMPLEMENTARY_DATA].get("discrete_penalty", 0.0)
-                frame["complementary_info.discrete_penalty"] = np.array([discrete_penalty], dtype=np.float32)
+                frame["complementary_info.discrete_penalty"] = np.array([discrete_penalty], dtype=np.float16)
 
             if dataset is not None:
                 frame["task"] = cfg.dataset.task

@@ -523,7 +523,7 @@ class ReplayBuffer:
             "index": {"dtype": "int64", "shape": [1]},  # global index across episodes
             "episode_index": {"dtype": "int64", "shape": [1]},  # which episode
             "frame_index": {"dtype": "int64", "shape": [1]},  # index inside an episode
-            "timestamp": {"dtype": "float32", "shape": [1]},  # for now we store dummy
+            "timestamp": {"dtype": "bfloat16", "shape": [1]},  # for now we store dummy
             "task_index": {"dtype": "int64", "shape": [1]},
         }
 
@@ -533,7 +533,7 @@ class ReplayBuffer:
         features["action"] = act_info
 
         # Add "reward" and "done"
-        features["next.reward"] = {"dtype": "float32", "shape": (1,)}
+        features["next.reward"] = {"dtype": "bfloat16", "shape": (1,)}
         features["next.done"] = {"dtype": "bool", "shape": (1,)}
 
         # Add state keys
@@ -577,7 +577,7 @@ class ReplayBuffer:
 
             # Fill action, reward, done
             frame_dict["action"] = self.actions[actual_idx].cpu()
-            frame_dict["next.reward"] = torch.tensor([self.rewards[actual_idx]], dtype=torch.float32).cpu()
+            frame_dict["next.reward"] = torch.tensor([self.rewards[actual_idx]], dtype=torch.bfloat16).cpu()
             frame_dict["next.done"] = torch.tensor([self.dones[actual_idx]], dtype=torch.bool).cpu()
             frame_dict["task"] = task_name
 
@@ -751,7 +751,7 @@ def guess_feature_info(t, name: str):
     else:
         # Otherwise treat as numeric
         return {
-            "dtype": "float32",
+            "dtype": "float16",
             "shape": shape,
         }
 

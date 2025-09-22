@@ -37,17 +37,18 @@ def apply_rope(x, positions, max_wavelength=10_000):
     """
     d_half = x.shape[-1] // 2
     device = x.device
-    dtype = x.dtype
-    x = x.to(torch.float16)
+    #dtype = x.dtype
+    dtype = torch.bfloat16
+    x = x.to(torch.bfloat16)
 
-    freq_exponents = (2.0 / x.shape[-1]) * torch.arange(d_half, dtype=torch.float16, device=device)
+    freq_exponents = (2.0 / x.shape[-1]) * torch.arange(d_half, dtype=torch.bfloat16, device=device)
     timescale = max_wavelength**freq_exponents
-    radians = positions[..., None].to(torch.float16) / timescale[None, None, :].to(torch.float16)
+    radians = positions[..., None].to(torch.bfloat16) / timescale[None, None, :].to(torch.bfloat16)
 
     radians = radians[..., None, :]
 
-    sin = torch.sin(radians)  # .to(dtype=dtype)
-    cos = torch.cos(radians)  # .to(dtype=dtype)
+    sin = torch.sin(radians).to(torch.bfloat16)  # .to(dtype=dtype)
+    cos = torch.cos(radians).to(torch.bfloat16)  # .to(dtype=dtype)
 
     x1, x2 = x.split(d_half, dim=-1)
     res = torch.empty_like(x)
@@ -95,7 +96,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                     "num_hidden_layers": 18,
                     "num_image_tokens": 256,
                     "num_key_value_heads": 1,
-                    "torch_dtype": "float16",
+                    "torch_dtype": "bfloat16",
                     "vocab_size": 257152,
                 },
                 vision_config={
@@ -108,7 +109,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                     "patch_size": 14,
                     "projection_dim": 2048,
                     "projector_hidden_act": "gelu_fast",
-                    "torch_dtype": "float16",
+                    "torch_dtype": "bfloat16",
                     "vision_use_head": False,
                 },
             )
@@ -141,7 +142,7 @@ class PaliGemmaWithExpertConfig(PretrainedConfig):
                 pad_token_id=0,
                 rms_norm_eps=1e-06,
                 rope_theta=10000.0,
-                torch_dtype="float16",
+                torch_dtype="bfloat16",
                 transformers_version="4.48.1",
                 use_cache=True,
                 vocab_size=257152,
@@ -395,8 +396,8 @@ class PaliGemmaWithExpertModel(PreTrainedModel):
 
         # Attention here is upcasted to float16 to match the original eager implementation.
 
-        query_states = query_states.to(dtype=torch.float16)
-        key_states = key_states.to(dtype=torch.float16)
+        query_states = query_states.to(dtype=torch.bfloat16)
+        key_states = key_states.to(dtype=torch.bfloat16)
 
         query_states = query_states.transpose(1, 2)
         key_states = key_states.transpose(1, 2)
@@ -404,13 +405,13 @@ class PaliGemmaWithExpertModel(PreTrainedModel):
         att_weights = torch.matmul(query_states, key_states.transpose(2, 3))
         att_weights *= head_dim**-0.5
         big_neg = -2.3819763e38  # See gemma/modules.py
-        att_weights = att_weights.to(dtype=torch.float16)
+        att_weights = att_weights.to(dtype=torch.bfloat16)
         big_neg = np.float16(big_neg)
 
         masked_att_weights = torch.where(attention_mask[:, None, :, :], att_weights, big_neg)
 
         probs = nn.functional.softmax(masked_att_weights, dim=-1)
-        probs = probs.to(dtype=value_states.dtype)
+        probs = probs.to(dtype=torch.bfloat16)
 
         # probs: batch_size, num_key_value_head, num_att_head, sequence_length, sequence_length
         # value_states: batch_size, sequence_length, num_att_heads, head_dim

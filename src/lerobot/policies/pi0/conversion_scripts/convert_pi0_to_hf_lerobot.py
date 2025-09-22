@@ -408,7 +408,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--precision",
         choices=["float32", "bfloat16", "float16"],
-        default="float32",
+        default="bfloat16",
         type=str,
         help="Precision identifier for model conversion - should match the base checkpoint precision.",
     )

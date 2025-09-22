@@ -165,7 +165,7 @@ def decode_video_frames_torchvision(
         logging.info(f"{closest_ts=}")
 
     # convert to the pytorch format which is float32 in [0,1] range (and channel first)
-    closest_frames = closest_frames.type(torch.float32) / 255
+    closest_frames = closest_frames.type(torch.bfloat16) / 255
 
     assert len(timestamps) == len(closest_frames)
     return closest_frames
@@ -290,7 +290,7 @@ def decode_video_frames_torchcodec(
         logging.info(f"{closest_ts=}")
 
     # convert to float32 in [0,1] range
-    closest_frames = (closest_frames / 255.0).type(torch.float32)
+    closest_frames = (closest_frames / 255.0).type(torch.bfloat16)
 
     if not len(timestamps) == len(closest_frames):
         raise FrameTimestampError(
@@ -490,7 +490,7 @@ class VideoFrame:
     ```
     """
 
-    pa_type: ClassVar[Any] = pa.struct({"path": pa.string(), "timestamp": pa.float32()})
+    pa_type: ClassVar[Any] = pa.struct({"path": pa.string(), "timestamp": pa.float16()})
     _type: str = field(default="VideoFrame", init=False, repr=False)
 
     def __call__(self):

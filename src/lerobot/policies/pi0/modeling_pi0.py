@@ -77,7 +77,7 @@ def create_sinusoidal_pos_embedding(
     if time.ndim != 1:
         raise ValueError("The time tensor is expected to be of shape `(batch_size, )`.")
 
-    dtype = get_safe_dtype(torch.float64, device.type)
+    dtype = get_safe_dtype(torch.bfloat16, device.type)
     fraction = torch.linspace(0.0, 1.0, dimension // 2, dtype=dtype, device=device)
     period = min_period * (max_period / min_period) ** fraction
 
@@ -85,6 +85,7 @@ def create_sinusoidal_pos_embedding(
     scaling_factor = 1.0 / period * 2 * math.pi
     sin_input = scaling_factor[None, :] * time[:, None]
     pos_emb = torch.cat([torch.sin(sin_input), torch.cos(sin_input)], dim=1)
+    pos_emb = pos_emb.to(dtype=dtype)
     return pos_emb
 
 
@@ -152,23 +153,23 @@ def pad_vector(vector, new_dim):
     shape = list(vector.shape)
     current_dim = shape[-1]
     shape[-1] = new_dim
-    new_vector = torch.zeros(*shape, dtype=vector.dtype, device=vector.device)
+    new_vector = torch.zeros(*shape, dtype=torch.bfloat16, device=vector.device)
     new_vector[..., :current_dim] = vector
     return new_vector
 
 
 def normalize(x, min_val, max_val):
-    return (x - min_val) / (max_val - min_val)
+    return ((x - min_val) / (max_val - min_val)).to(torch.bfloat16)
 
 
 def unnormalize(x, min_val, max_val):
-    return x * (max_val - min_val) + min_val
+    return (x * (max_val - min_val) + min_val).to(torch.bfloat16)
 
 
 def safe_arcsin(value):
     # This ensures that the input stays within
     # [−1,1] to avoid invalid values for arcsin
-    return torch.arcsin(torch.clamp(value, -1.0, 1.0))
+    return (torch.arcsin(torch.clamp(value, -1.0, 1.0))).to(torch.bfloat16)
 
 
 def aloha_gripper_to_angular(value):
@@ -448,11 +449,16 @@ class PI0FlowMatching(nn.Module):
 
         # Projections are float32
         self.state_proj = nn.Linear(self.config.max_state_dim, self.config.proj_width)
+        self.state_proj = self.state_proj.to(dtype=torch.bfloat16)
         self.action_in_proj = nn.Linear(self.config.max_action_dim, self.config.proj_width)
+        self.action_in_proj = self.action_in_proj.to(dtype=torch.bfloat16)
         self.action_out_proj = nn.Linear(self.config.proj_width, self.config.max_action_dim)
+        self.action_out_proj = self.action_out_proj.to(dtype=torch.bfloat16)
 
         self.action_time_mlp_in = nn.Linear(self.config.proj_width * 2, self.config.proj_width)
+        self.action_time_mlp_in = self.action_time_mlp_in.to(dtype=torch.bfloat16)
         self.action_time_mlp_out = nn.Linear(self.config.proj_width, self.config.proj_width)
+        self.action_time_mlp_out = self.action_time_mlp_out.to(dtype=torch.bfloat16)
 
         self.set_requires_grad()
 
@@ -465,14 +471,14 @@ class PI0FlowMatching(nn.Module):
             mean=0.0,
             std=1.0,
             size=shape,
-            dtype=torch.float32,
+            dtype=torch.bfloat16,
             device=device,
         )
         return noise
 
     def sample_time(self, bsize, device):
         beta_dist = torch.distributions.Beta(concentration1=1.5, concentration0=1.0)
-        time_beta = beta_dist.sample((bsize,)).to(device=device, dtype=torch.float32)
+        time_beta = beta_dist.sample((bsize,)).to(device=device, dtype=torch.bfloat16)
         time = time_beta * 0.999 + 0.001
         return time
 
@@ -552,7 +558,7 @@ class PI0FlowMatching(nn.Module):
         time_emb = create_sinusoidal_pos_embedding(
             timestep, self.config.proj_width, min_period=4e-3, max_period=4.0, device=device
         )
-        time_emb = time_emb.type(dtype=dtype)
+        time_emb = time_emb.type(dtype=torch.bfloat16)
 
         # Fuse timestep + action information using an MLP
         action_emb = self.action_in_proj(noisy_actions)
@@ -616,7 +622,7 @@ class PI0FlowMatching(nn.Module):
         )
         suffix_out = suffix_out[:, -self.config.n_action_steps :]
         # Original openpi code, upcast attention output
-        suffix_out = suffix_out.to(dtype=torch.float32)
+        suffix_out = suffix_out.to(dtype=torch.bfloat16)
         v_t = self.action_out_proj(suffix_out)
 
         losses = F.mse_loss(u_t, v_t, reduction="none")
@@ -648,10 +654,10 @@ class PI0FlowMatching(nn.Module):
         )
 
         dt = -1.0 / self.config.num_steps
-        dt = torch.tensor(dt, dtype=torch.float32, device=device)
+        dt = torch.tensor(dt, dtype=torch.bfloat16, device=device)
 
         x_t = noise
-        time = torch.tensor(1.0, dtype=torch.float32, device=device)
+        time = torch.tensor(1.0, dtype=torch.bfloat16, device=device)
         while time >= -dt / 2:
             expanded_time = time.expand(bsize)
             v_t = self.denoise_step(
@@ -700,6 +706,6 @@ class PI0FlowMatching(nn.Module):
         )
         suffix_out = outputs_embeds[1]
         suffix_out = suffix_out[:, -self.config.n_action_steps :]
-        suffix_out = suffix_out.to(dtype=torch.float32)
+        suffix_out = suffix_out.to(dtype=torch.bfloat16)
         v_t = self.action_out_proj(suffix_out)
         return v_t

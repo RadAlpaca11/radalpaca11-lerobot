@@ -61,10 +61,10 @@ def main():
     # Override stats
     dataset_meta = LeRobotDatasetMetadata(dataset_repo_id)
     dataset_meta.stats["observation.state"]["mean"] = torch.tensor(
-        norm_stats["norm_stats"]["state"]["mean"][:num_motors], dtype=torch.float32
+        norm_stats["norm_stats"]["state"]["mean"][:num_motors], dtype=torch.bfloat16
     )
     dataset_meta.stats["observation.state"]["std"] = torch.tensor(
-        norm_stats["norm_stats"]["state"]["std"][:num_motors], dtype=torch.float32
+        norm_stats["norm_stats"]["state"]["std"][:num_motors], dtype=torch.bfloat16
     )
 
     # Create LeRobot batch from Jax
@@ -93,9 +93,9 @@ def main():
     # To device
     for k in batch:
         if isinstance(batch[k], torch.Tensor):
-            batch[k] = batch[k].to(device=device, dtype=torch.float32)
+            batch[k] = batch[k].to(device=device, dtype=torch.bfloat16)
 
-    noise = torch.from_numpy(noise).to(device=device, dtype=torch.float32)
+    noise = torch.from_numpy(noise).to(device=device, dtype=torch.bfloat16)
 
     from lerobot import policies  # noqa
 

@@ -30,7 +30,7 @@ from .core import EnvTransition, PolicyAction, RobotAction, RobotObservation, Tr
 def to_tensor(
     value: Any,
     *,
-    dtype: torch.dtype | None = torch.float32,
+    dtype: torch.dtype | None = torch.bfloat16,
     device: torch.device | str | None = None,
 ) -> torch.Tensor:
     """
@@ -54,7 +54,7 @@ def to_tensor(
 
 
 @to_tensor.register(torch.Tensor)
-def _(value: torch.Tensor, *, dtype=torch.float32, device=None, **kwargs) -> torch.Tensor:
+def _(value: torch.Tensor, *, dtype=torch.bfloat16, device=None, **kwargs) -> torch.Tensor:
     """Handle conversion for existing PyTorch tensors."""
     if dtype is not None:
         value = value.to(dtype=dtype)
@@ -67,7 +67,7 @@ def _(value: torch.Tensor, *, dtype=torch.float32, device=None, **kwargs) -> tor
 def _(
     value: np.ndarray,
     *,
-    dtype=torch.float32,
+    dtype=torch.bfloat16,
     device=None,
     **kwargs,
 ) -> torch.Tensor:
@@ -94,14 +94,14 @@ def _(
 @to_tensor.register(float)
 @to_tensor.register(np.integer)
 @to_tensor.register(np.floating)
-def _(value, *, dtype=torch.float32, device=None, **kwargs) -> torch.Tensor:
+def _(value, *, dtype=torch.bfloat16, device=None, **kwargs) -> torch.Tensor:
     """Handle conversion for scalar values including numpy scalars."""
     return torch.tensor(value, dtype=dtype, device=device)
 
 
 @to_tensor.register(list)
 @to_tensor.register(tuple)
-def _(value: Sequence, *, dtype=torch.float32, device=None, **kwargs) -> torch.Tensor:
+def _(value: Sequence, *, dtype=torch.bfloat16, device=None, **kwargs) -> torch.Tensor:
     """Handle conversion for sequences (lists, tuples)."""
     return torch.tensor(value, dtype=dtype, device=device)
 
