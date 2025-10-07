@@ -447,7 +447,7 @@ class PI0FlowMatching(nn.Module):
         )
         self.paligemma_with_expert = PaliGemmaWithExpertModel(paligemma_with_export_config)
 
-        # Projections are float32
+        # Projections are float32, converted to bfloat16 to save space
         self.state_proj = nn.Linear(self.config.max_state_dim, self.config.proj_width)
         self.state_proj = self.state_proj.to(dtype=torch.bfloat16)
         self.action_in_proj = nn.Linear(self.config.max_action_dim, self.config.proj_width)

@@ -110,8 +110,6 @@ def update_policy(
     # Updates the scale for next iteration.
     grad_scaler.update()
 
-    torch.cuda.empty_cache()
-
     optimizer.zero_grad()
 
     # Step through pytorch scheduler at every batch instead of epoch
@@ -255,7 +253,6 @@ def train(cfg: TrainPipelineConfig):
         batch = next(dl_iter)
         batch = preprocessor(batch)
         train_tracker.dataloading_s = time.perf_counter() - start_time
-        torch.cuda.empty_cache()
 
         train_tracker, output_dict = update_policy(
             train_tracker,
