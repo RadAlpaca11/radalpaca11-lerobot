@@ -87,7 +87,7 @@ def load_original_frames(imgs_dir: Path, timestamps: list[float], fps: int) -> t
         idx = int(ts * fps)
         frame = PIL.Image.open(imgs_dir / f"frame_{idx:06d}.png")
         frame = torch.from_numpy(np.array(frame))
-        frame = frame.type(torch.float32) / 255
+        frame = frame.type(torch.bfloat32) / 255
         frame = einops.rearrange(frame, "h w c -> c h w")
         frames.append(frame)
     return torch.stack(frames)

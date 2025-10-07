@@ -71,7 +71,7 @@ class NormalizerProcessorStep(ProcessorStep):
     def __post_init__(self):
         """Convert stats to tensors for efficient computation."""
         self.stats = self.stats or {}
-        self._tensor_stats = to_tensor(self.stats, device=self.device, dtype=torch.float32)
+        self._tensor_stats = to_tensor(self.stats, device=self.device, dtype=torch.bfloat16)
 
     def __call__(self, transition: EnvTransition) -> EnvTransition:
         new_transition = transition.copy()

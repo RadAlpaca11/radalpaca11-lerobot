@@ -247,7 +247,7 @@ def block_causal_update_causal_mask(
     cache_position=None,
     input_tensor=None,
     attn_implementation: str = "eager",
-    dtype: torch.dtype = "float32",
+    dtype: torch.dtype = "bfloat16",
 ):
     """
     Update the causal mask during training and generation. It can be customized to different attention masks.
@@ -413,7 +413,7 @@ class PI0FAST(nn.Module):
             0
         ]  # self.config.max_action_dim  # self.config.action_feature.shape[0]
         precision = config.precision
-        torch_precision = PRECISION.get(precision, torch.float32)
+        torch_precision = PRECISION.get(precision, torch.bfloat16)
         self.pad_token_id = (
             self.paligemma_tokenizer.pad_token_id
             if hasattr(self.paligemma_tokenizer, "pad_token_id")
@@ -966,7 +966,7 @@ def resize_with_pad(img, width, height, pad_value=0, interpolate_like_pi=True):
             imgs.append(resized_img)
         img = torch.stack(imgs, dim=0)
         img = img.permute(0, 3, 1, 2)
-        resized_img = img.to(device=original_device, dtype=torch.float32) / 255.0
+        resized_img = img.to(device=original_device, dtype=torch.bfloat16) / 255.0
     else:
         resized_img = F.interpolate(
             img, size=(resized_height, resized_width), mode="bilinear", align_corners=False

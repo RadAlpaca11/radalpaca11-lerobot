@@ -775,7 +775,7 @@ def random_shifts_aug(x: Tensor, max_random_shift_ratio: float) -> Tensor:
         1.0 - eps,
         h + 2 * pad,
         device=x.device,
-        dtype=torch.float32,
+        dtype=torch.bfloat16,
     )[:h]
     arange = einops.repeat(arange, "w -> h w 1", h=h)
     base_grid = torch.cat([arange, arange.transpose(1, 0)], dim=2)
@@ -786,7 +786,7 @@ def random_shifts_aug(x: Tensor, max_random_shift_ratio: float) -> Tensor:
         2 * pad + 1,
         size=(b, 1, 1, 2),
         device=x.device,
-        dtype=torch.float32,
+        dtype=torch.bfloat16,
     )
     shift *= 2.0 / (h + 2 * pad)
     grid = base_grid + shift
