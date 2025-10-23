@@ -89,6 +89,7 @@ def update_policy(
     """
     start_time = time.perf_counter()
     device = get_device_from_parameters(policy)
+    
     policy.train()
     with torch.autocast(device_type=device.type) if use_amp else nullcontext():
         loss, output_dict = policy.forward(batch)
@@ -158,8 +159,9 @@ def train(cfg: TrainPipelineConfig):
 
     # Check device is available
     device = get_safe_torch_device(cfg.policy.device, log=True)
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
     torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cuda.enable_mem_efficient_sdp(True)
 
     logging.info("Creating dataset")
     dataset = make_dataset(cfg)
@@ -250,7 +252,7 @@ def train(cfg: TrainPipelineConfig):
         shuffle=shuffle and not cfg.dataset.streaming,
         sampler=sampler,
         pin_memory=device.type == "cuda",
-        drop_last=False,
+        drop_last=True,
         prefetch_factor=2,
     )
     dl_iter = cycle(dataloader)
